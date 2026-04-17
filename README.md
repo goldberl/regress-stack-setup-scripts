@@ -36,7 +36,7 @@ openstack token issue
 cd regress-stack && sudo uv run regress-stack playground
 ```
 
-4. Get the user creds (and ousrce if you want to use those instead of auth creds)
+4. Get the user creds (and source if you want to use those instead of auth creds)
 ```
 sudo cp /root/user.rc ~/user.rc
 ```
