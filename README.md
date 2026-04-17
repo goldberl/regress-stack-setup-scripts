@@ -46,9 +46,25 @@ sudo cp /root/user.rc ~/user.rc
 openstack server create --image ubuntu-<release> --flavor m1.small --network private-network test-server
 ```
 
-**Unfortunately, this repo doesn't support Questing/Resolute scripts yet, as some extra setup is needed.**
+**This repo doesn't support Questing/Resolute scripts yet, as some extra setup is needed.**
 
 Please see [Regress Stack How to](https://github.com/canonical/se-wiki/wiki/Regress-Stack-How-to) for the steps to manually setup regress-stack on Ubuntu 25.10 (Questing) and Ubuntnu 26.04 (Resolute) for now.
+
+**The Jammy scripts are also broken because of an upstream update.**
+
+When deploying on Jammy manually, you need to do these extra steps after you clone the repo.
+
+1. Pin Python 3.10
+
+```
+uv python pin 3.10
+``` 
+
+2. Modify  pyproject.toml
+
+```
+sed -i 's|python-apt *= *{ *git *= *"https://salsa.debian.org/apt-team/python-apt.git", *rev *= *"3.0.0ubuntu1" *}|python-apt = { git = "https://salsa.debian.org/apt-team/python-apt.git", rev = "2.4.y" }|' pyproject.toml
+```
 
 ---
 ### Horizon Support
