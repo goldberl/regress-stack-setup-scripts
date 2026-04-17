@@ -44,8 +44,11 @@ sudo cp /root/user.rc ~/user.rc
 5. Deploy a server
 ```
 openstack server create --image ubuntu-<release> --flavor m1.small --network private-network test-server
-
 ```
+
+**Unfortunately, this repo doesn't support Questing/Resolute scripts yet, as some extra setup is needed.**
+
+Please see [Regress Stack How to](https://github.com/canonical/se-wiki/wiki/Regress-Stack-How-to) for the steps to manually setup regress-stack on Ubuntu 25.10 (Questing) and Ubuntnu 26.04 (Resolute) for now.
 
 ---
 ### Horizon Support
