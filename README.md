@@ -58,6 +58,21 @@ The [fork of regress-stack that this script uses](https://github.com/goldberl/re
 ```
 http://<VM-IP-ADDRESS>/horizon
 ```
+
+**Look in the `.rc` files for the username and password.**
+
+The default values are as follows:
+
+```
+# ~/auth.rc
+USERNAME=admin
+PASSWORD=changeme
+
+# ~/user.rc
+USERNAME=demo
+PASSWORD=demo123
+```
+
 ---
 ### Usage
 
