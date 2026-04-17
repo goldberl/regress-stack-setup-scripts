@@ -1,0 +1,152 @@
+---
+# cloud-config
+# yamllint disable rule:line-length
+# multipass launch noble --name rs-noble-dalmatian --cpus 8 --memory 16G --disk 50G --cloud-init rs-noble-dalmatian.yaml
+
+package_update: true
+
+packages:
+  - git
+  - python3-openstackclient
+  - dpkg-dev
+  - python3-dev
+  - python3-apt
+  - python-apt-dev
+  - ubuntu-cloud-keyring
+
+runcmd:
+  - |
+    set -e
+
+    echo ""
+    echo "########### Step 0: Install UCA Dalmatian repo  ###########"
+    echo ""
+
+    cat <<EOF > /etc/apt/sources.list.d/dalmatian.sources
+    Types: deb
+    URIs: http://ubuntu-cloud.archive.canonical.com/ubuntu
+    Suites: noble-updates/dalmatian
+    Components: main
+    Signed-By: /usr/share/keyrings/ubuntu-cloud-keyring.gpg
+    EOF
+
+    apt-get install -y ubuntu-cloud-keyring
+    apt-get update
+
+
+    echo ""
+    echo "###################### Repo configured ######################"
+    echo ""
+
+  - |
+    set -e
+
+    echo ""
+    echo "########### Step 1/6: Installing snaps ########################"
+    echo ""
+
+    snap install astral-uv --classic
+    snap install micro --classic
+
+    echo ""
+    echo "#################### Installing snaps done ####################"
+    echo ""
+
+  - |
+    set -e
+
+    echo ""
+    echo "########### Step 2/6: Clone regress-stack #####################"
+    echo ""
+
+    cd /home/ubuntu
+    git clone https://github.com/goldberl/regress-stack.git && cd regress-stack
+    git fetch && git switch add-horizon-support
+
+    chown -R ubuntu:ubuntu /home/ubuntu/regress-stack
+
+    echo ""
+    echo "#################### Clone done ###############################"
+    echo ""
+
+  - |
+    set -e
+
+    echo ""
+    echo "########### Step 3/6: Setup uv environment ####################"
+    echo ""
+
+    cd /home/ubuntu/regress-stack
+
+    sudo -u ubuntu /snap/bin/uv venv --system-site-packages --python-preference system
+    sudo -u ubuntu /snap/bin/uv sync
+
+    echo ""
+    echo "#################### uv setup done ############################"
+    echo ""
+
+  - |
+    echo ""
+    echo "########### Step 4/6: Run tests ###############################"
+    echo ""
+
+    cd /home/ubuntu/regress-stack
+
+    sudo -u ubuntu /snap/bin/uv run py.test || true
+
+    echo ""
+    echo "#################### tests done ###############################"
+    echo ""
+
+  - |
+    set -e
+
+    echo ""
+    echo "########### Step 5/6: Install OpenStack packages ##############"
+    echo ""
+
+    cd /home/ubuntu/regress-stack
+
+    apt install -y $(sudo -u ubuntu /snap/bin/uv run regress-stack packages neutron)
+    apt install -y $(sudo -u ubuntu /snap/bin/uv run regress-stack packages glance)
+    apt install -y $(sudo -u ubuntu /snap/bin/uv run regress-stack packages nova)
+    apt install -y $(sudo -u ubuntu /snap/bin/uv run regress-stack packages horizon)
+    apt install -y $(sudo -u ubuntu /snap/bin/uv run regress-stack packages cinder)
+
+    echo ""
+    echo "#################### package install done #####################"
+    echo ""
+
+  - |
+    set -e
+
+    echo ""
+    echo "############# Step 6/6: Run regress stack setup ################"
+    echo ""
+
+    cd /home/ubuntu/regress-stack
+
+    /snap/bin/uv run regress-stack setup
+
+    echo ""
+    echo "############## regress stack setup complete #####################"
+    echo ""
+
+final_message: |
+  ==============================================================================
+  ==============================================================================
+  ==============================================================================
+
+  regress-stack NOBLE-DALMATIAN setup is ready.
+
+  Next steps:
+
+  1) sudo cp /root/auth.rc ~ && sudo chown $(id -u):$(id -g) ~/auth.rc && source ~/auth.rc
+  2) openstack token issue
+  3) cd regress-stack && sudo uv run regress-stack playground
+  4) sudo cp /root/user.rc ~/user.rc
+  5) openstack server create --image ubuntu-noble --flavor m1.small --network private-network test-server
+
+  ==============================================================================
+  ==============================================================================
+  ==============================================================================
